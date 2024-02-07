@@ -159,6 +159,10 @@ InverseVerticallyIntegratedVelocitySolver::Configuration::parse(const char* a_pr
       {
 	m_velMisfitType = log_speed;
       }
+    else if (s == "all_i_want_is_mag_speed_ok")
+      {
+    m_velMisfitType = all_i_want_is_mag_speed_ok;
+      }
     else
       {
 	MayDay::Error("unknown control.velMisfitType");
@@ -172,7 +176,7 @@ InverseVerticallyIntegratedVelocitySolver::Configuration::parse(const char* a_pr
   CH_assert(m_velObs_x != NULL);
 #if CH_SPACEDIM > 1
   m_velObs_y = SurfaceData::parse("control.yVel");
-  if ((m_velObs_y == NULL) && (m_velMisfitType == speed))
+  if ((m_velObs_y == NULL) && (m_velMisfitType == speed || m_velMisfitType == all_i_want_is_mag_speed_ok))
     {
       m_velObs_y = new ZeroData;
     }
@@ -1201,6 +1205,24 @@ InverseVerticallyIntegratedVelocitySolver::computeAdjointRhs()
 				    CHF_CONST_FRA1(uo,0), CHF_CONST_FRA1(uo,1),
 				    CHF_BOX(box));
 	    }
+      else if (m_config.m_velMisfitType == Configuration::all_i_want_is_mag_speed_ok)
+      {
+       FArrayBox modu(box, 1);
+       FArrayBox obsu(box, 1);
+       for ( BoxIterator bit(m_grids[lev][dit]); bit.ok(); ++bit ){
+            const IntVect& iv = bit();
+
+            modu(iv)      = std::pow( std::pow(um(iv,0),2.)
+                               + std::pow(um(iv,1),2.), 0.5 ) + 0.01;
+
+            misfit(iv)    = std::abs( modu(iv) );
+
+            adjRhs(iv,0)  = um(iv,0) * 0.5;
+            adjRhs(iv,1)  = um(iv,1) * 0.5;
+       }
+       adjRhs.divide(modu,0,0,1);
+       adjRhs.divide(modu,0,1,1);
+      }
 	  else
 	    {
 	      CH_assert(m_config.m_velMisfitType < Configuration::MAX_VELOCITY_MISFIT_TYPE);

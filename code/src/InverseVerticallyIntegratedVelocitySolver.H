@@ -199,8 +199,8 @@ public:
     enum BoundMethod {none, projection, MAX_BOUND_METHOD};
     /// Method to enforce constraints: none, or projection. default projection
     BoundMethod m_boundMethod;
-    
-    enum VelocityMisfitType {speed, velocity, log_speed, MAX_VELOCITY_MISFIT_TYPE};
+   
+    enum VelocityMisfitType {speed, velocity, log_speed, all_i_want_is_mag_speed_ok, MAX_VELOCITY_MISFIT_TYPE};
     /// Type of velocity misfit : speed, velocity, or log_speed. Set with <prefix>.vel_misfit_type, default speed
     VelocityMisfitType m_velMisfitType;
 
